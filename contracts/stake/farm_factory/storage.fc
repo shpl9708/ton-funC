@@ -1,0 +1,24 @@
+global int storage::nonce;
+global slice storage::owner_address;
+global cell storage::farm_code;
+global cell storage::user_storage_code;
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::nonce = ds~load_uint(64);
+    storage::owner_address = ds~load_msg_addr();
+    storage::farm_code = ds~load_ref();
+   ;; storage::user_storage_code = ds~load_ref();
+    
+}
+
+() save_storage() impure inline {
+    set_data(
+        begin_cell()
+            .store_uint(storage::nonce, 64) ;;indicates farm key
+            .store_slice(storage::owner_address)
+            .store_ref(storage::farm_code)
+            ;;.store_ref(storage::user_storage_code)
+        .end_cell()
+    );
+}

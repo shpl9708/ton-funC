@@ -1,0 +1,39 @@
+
+slice create_address(int wc, int address_hash) inline {
+    return begin_cell().store_uint(4, 3)
+            .store_int(wc, 8)
+            .store_uint(address_hash, 256)
+        .end_cell()
+        .begin_parse();
+}
+
+cell calculate_farm_state_init(cell pool_data, cell pool_contract_code){
+    return begin_cell()
+            .store_uint(0, 2)
+            .store_dict(pool_contract_code)
+            .store_dict(pool_data)
+            .store_uint(0,1)
+        .end_cell();
+}
+
+slice calculate_address_by_state_init(cell state_init) inline {
+    return create_address(WORKCHAIN, cell_hash(state_init));
+}
+
+cell pack_farm_data(int start, int end, slice operator_address, slice token_address, slice reward_address, int reward_amount) inline {
+    cell token_info = begin_cell()
+                        .store_slice(token_address)
+                        .store_slice(reward_address)
+                        .store_coins(reward_amount)
+                    .end_cell();
+    ;;~dump(my_address());
+    return begin_cell()
+            .store_uint(storage::nonce, 64)
+            .store_slice(my_address())
+            .store_slice(operator_address)
+            .store_uint(start, 32)
+            .store_uint(end, 32)
+            .store_ref(token_info)
+        .end_cell();
+}
+

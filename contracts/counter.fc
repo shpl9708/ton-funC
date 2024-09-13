@@ -1,0 +1,114 @@
+#include "imports/stdlib.fc";
+
+(cell, int) dict_delete?(cell dict, int key_len, slice index) asm(index dict key_len) "DICTDEL";
+(slice, int) dict_get?(cell dict, int key_len, slice index) asm(index dict key_len) "DICTGET" "NULLSWAPIFNOT";
+
+(slice, (int, int)) ~load_body_header(slice s) inline {
+  int op = s~load_uint(32);
+  int query_id = s~load_uint(64);
+  return (s, (op, query_id));
+}
+(int, cell) load_data() inline {
+    slice ds = get_data().begin_parse();
+    int count = ds~load_uint(64);
+    cell dict = ds~load_dict();
+    ;; ~dump("asdfasd");
+    cell myDict = dict.dict_empty?() ? new_dict() : dict;
+    return (count, myDict);
+}
+
+() save_data(int counter, cell dict) impure inline {
+    ~strdump("real save");
+    ~dump(dict);
+    set_data(begin_cell()
+    .store_uint(counter, 64)
+    .store_dict(dict)
+    .end_cell());
+}
+
+slice getAddress(cell msg) inline {
+    slice cs = msg.begin_parse();
+    var flags = cs~load_uint(4);
+    slice addr = cs~load_msg_addr();
+    return addr;
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()){
+        return();
+    }
+    (int op, int query_id) = in_msg_body~load_body_header();
+    slice addrBody = in_msg_body~load_msg_addr();
+    slice sender = my_address();
+    slice real_sender = getAddress(in_msg_full);
+
+    ~strdump("im address from body");
+    ~dump(addrBody);
+    ~dump(real_sender);
+    ;;cs~load_msg_addr();
+    ~dump(equal_slice_bits(addrBody,real_sender));
+    if(equal_slice_bits(addrBody,real_sender)){
+~strdump("we are same");
+    } else {
+~strdump("we are not same");
+    }
+
+    var (counter, dict) = load_data();
+    ;; ~dump(counter);
+    ;; ~strdump("asdfasd");
+    ;; ~dump(dict);
+    ;; cell dict_cell = new_dict();
+    ;; if (~ slice_empty?(dict)){
+    ;;     dict_cell = dict;
+    ;; }
+    ;;cell dict_cell = dict.slice_bits() == 0 ? new_dict() : dict;
+    if (op == 1){
+        ~strdump("i save dict");
+        dict~dict_set_builder(267,real_sender,begin_cell().store_uint(1, 1));
+
+        ~dump(dict);
+        ;;dict~dict_set(254,index,value)
+        save_data(counter + 1, dict);
+        ~strdump("save done");
+    } elseif (op == 2){
+        dict~dict_delete?(267,real_sender);
+        save_data(counter + 1, dict);
+        ~strdump("removed");
+    } else {
+        ~strdump("wrong");
+    }
+}
+
+int counter() method_id {
+    var (counter, _) = load_data();
+    return counter;
+}
+
+cell getDict() method_id {
+    var (_, dict) = load_data();
+    return dict;
+}
+
+int checkOwner(slice address) method_id {
+    (int addr, cell dict) = load_data();
+    (slice balance, int found) =  dict.dict_get?(267,address);
+   
+    if(found){
+        ~strdump("exist");
+        return 1;
+        ;;balance~load_uint(1);
+    } else {
+        ~strdump("no");
+        return 0;
+    }
+
+}
+
+;; (int, slice) get_by_key(slice addr) method_id {
+;;     var (_, dic) = load_data();
+;;     ;; (slice payload, int success) = dic.udict_get?(256, addr);
+;; 	;; throw_unless(98, success);
+
+;; 	;; int valid_until = payload~load_uint(64);
+;; 	;; return (valid_until, payload);
+;; }

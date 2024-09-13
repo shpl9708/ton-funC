@@ -1,0 +1,24 @@
+global int storage::staking_amount;
+global int storage::start_date;
+global int storage::additional_rewards;
+global slice storage::farm_address;
+
+() load_storage() impure inline {
+    slice ds = load_data().begin_parse();
+
+    storage::staking_amount = ds~load_coins();
+    storage::start_date = ds~load_uint(32);
+    storage::additional_rewards = ds~load_coins();
+    storage::farm_address = ds~load_msg_addr();
+}
+
+() save_storage() impure inline {
+    set_data(
+        begin_cell()
+            .store_coins(storage::staking_amount)
+            .store_uint(storage::start_date, 32)
+            .store_coint(storage::additional_rewards)
+            .store_slice(storage::farm_address)
+        .end_cell()
+    );
+}

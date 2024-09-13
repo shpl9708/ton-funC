@@ -1,0 +1,37 @@
+#include "common/stdlib.fc";
+#include "common/messages.fc";
+#include "common/errors.fc";
+#include "farm/storage.fc";
+;;#include "farm/params.fc";
+#include "farm/op.fc";
+;;#include "farm/utils.fc";
+
+()recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    slice sender_address = cs~load_msg_addr();
+    
+    if (flags & 1) {
+        return ();
+    }
+
+    load_storage();
+
+    if(op == op::transfer_notification){
+        ;; jetton 수신 기록을 확인 합니다.
+        (int jetton_amount, slice from_user) = (in_msg_body~load_coins(), in_msg_body~load_msg_addr());
+        throw_unless(error::invalid_amount, jetton_amount <= 0);
+        throw_unless(error::wrong_token, equal_slices(sender_address,storage::token_address));
+        
+    }
+}
+
+(cell) get_duration() method_id {
+    load_storage();
+    ~strdump("hello");
+    ~dump(storage::nonce);
+    return get_data();
+}

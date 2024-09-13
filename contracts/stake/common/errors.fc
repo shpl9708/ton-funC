@@ -1,0 +1,3 @@
+;; wrong sender errors
+const int error::wrong_token = 400;
+const int error::invalid_amount = 401;
