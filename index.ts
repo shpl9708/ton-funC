@@ -3,7 +3,7 @@ import { Address, beginCell, fromNano, TonClient, TonClient4 } from "@ton/ton"
 (async ()=>{
 let client = new TonClient({
     endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-    apiKey:'b413562a050cd3611461bf3e46e394a051e6942a92ca1927bc1417781f019d43'
+    apiKey:
 });
 
 const raw_addr = 'UQCuLuH3UryHaL6zePds8cqvhsXO8AGlEHJgs12leuIutYNf'
